@@ -42,8 +42,13 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
             opponents_hands.append(opponent_hand)
             excluded_cards.update(opponent_hand)
 
+        # Determine how many community cards to draw
+        cards_to_draw = 5 - len(community_cards)
+        if cards_to_draw < 0:
+            raise ValueError("Too many community cards provided. Maximum is 5.")
+
         # Generate remaining community cards
-        remaining_community = draw_random_cards(excluded_cards, 5 - len(community_cards))
+        remaining_community = draw_random_cards(excluded_cards, cards_to_draw)
         full_community = community_cards + remaining_community
 
         # Simulate hand strengths (random values as placeholders)
