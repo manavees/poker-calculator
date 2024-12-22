@@ -9,19 +9,17 @@ ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 deck = [rank + suit for rank in ranks for suit in suits]
 
 
-def expand_cards(card_inputs):
+def validate_cards(card_inputs):
     """
-    Expand inputs like "A K" into full cards, e.g., "A♠, A♥, A♦, A♣" for "A".
+    Validate card inputs to ensure they follow the AH, KS format and exist in the deck.
     """
-    expanded = []
+    valid_cards = []
     for card in card_inputs:
-        if len(card) == 1 or (len(card) == 2 and card[1] not in suits):
-            expanded.extend([card[0] + suit for suit in suits])
-        elif len(card) == 2 and card[1] in suits:
-            expanded.append(card)
+        if len(card) == 2 and card[0] in ranks and card[1] in suits:
+            valid_cards.append(card)
         else:
             raise ValueError(f"Invalid card input: {card}")
-    return expanded
+    return valid_cards
 
 
 def draw_random_cards(exclude, num):
@@ -88,9 +86,9 @@ def calculate():
         num_opponents = int(data.get("num_opponents", 2))
         num_simulations = 10000
 
-        # Expand inputs like "A K" into all possible suits
-        hole_cards = expand_cards(hole_cards)
-        community_cards = expand_cards(community_cards)
+        # Validate cards
+        hole_cards = validate_cards(hole_cards)
+        community_cards = validate_cards(community_cards)
 
         # Simulate probabilities
         result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
