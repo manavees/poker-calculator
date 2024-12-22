@@ -4,22 +4,23 @@ import random
 app = Flask(__name__)
 
 # Full deck of cards
-suits = ['♠', '♥', '♦', '♣']
+suits = ['S', 'H', 'D', 'C']  # Use simplified uppercase suits
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-deck = [rank + suit for rank in ranks for suit in suits]
-
+deck = [rank + suit for rank in ranks for suit in suits]  # Example: ['AS', 'KH', '2C', ...]
 
 def validate_card(card):
     """Validate a single card input to ensure it is in the format AH, KS, etc."""
-    card = card.strip().upper()
-    if len(card) == 2 and card[0] in ranks and card[1] in suits:
-        return card
-    raise ValueError(f"Invalid card input: {card}")
+    card = card.strip().upper()  # Ensure the card is uppercase
+    if card in deck:
+        return card  # Valid card
+    raise ValueError(f"Invalid card input: {card}")  # Raise error if card is invalid
 
 
 def draw_random_cards(exclude, num):
     """Draw random cards from the deck, excluding specific cards."""
     available_cards = [card for card in deck if card not in exclude]
+    if len(available_cards) < num:
+        raise ValueError("Not enough cards left in the deck.")
     return random.sample(available_cards, num)
 
 
@@ -37,7 +38,7 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
         remaining_community = draw_random_cards(excluded_cards, 5 - len(community_cards))
         full_community = community_cards + remaining_community
 
-        # Simulate hand strengths (simple random values for now)
+        # Simulate hand strengths (simple random values as placeholders)
         player_hand_strength = random.randint(1, 7462)
         opponent_strengths = [random.randint(1, 7462) for _ in opponents_hands]
 
