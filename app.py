@@ -21,26 +21,32 @@ def draw_random_cards(exclude, num):
     """Draw random cards from the deck, excluding specific cards."""
     available_cards = [card for card in deck if card not in exclude]
     if len(available_cards) < num:
-        raise ValueError(f"Not enough cards left in the deck to draw {num} cards. Check your input.")
+        raise ValueError(
+            f"Not enough cards left in the deck to draw {num} cards. "
+            f"Available: {len(available_cards)}, Excluded: {len(exclude)}."
+        )
     return random.sample(available_cards, num)
 
 
 def simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations):
     """Simulate win probability using Monte Carlo simulation."""
     wins, ties = 0, 0
+    base_excluded_cards = set(hole_cards + community_cards)  # Base excluded cards
 
-    # Combine all excluded cards and ensure no duplicates
-    excluded_cards = set(hole_cards + community_cards)
-    if len(excluded_cards) != len(hole_cards) + len(community_cards):
-        raise ValueError("Duplicate cards found in input.")
+    # Check if too many cards are already excluded
+    if len(base_excluded_cards) > len(deck):
+        raise ValueError("Too many cards excluded. Check your inputs for duplicates.")
 
     for _ in range(num_simulations):
+        # Create a fresh copy of excluded cards for each simulation
+        excluded_cards = base_excluded_cards.copy()
+
         # Generate random opponent hands
         opponents_hands = []
         for _ in range(num_opponents):
             opponent_hand = draw_random_cards(excluded_cards, 2)
             opponents_hands.append(opponent_hand)
-            excluded_cards.update(opponent_hand)
+            excluded_cards.update(opponent_hand)  # Add opponent cards to excluded
 
         # Determine how many community cards to draw
         cards_to_draw = 5 - len(community_cards)
