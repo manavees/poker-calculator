@@ -28,6 +28,13 @@ def draw_random_cards(exclude, num):
     return random.sample(available_cards, num)
 
 
+def calculate_hand_strength(hand, community_cards):
+    """Dummy function to evaluate hand strength."""
+    # Placeholder: Assign random strength for each hand
+    # A real implementation would use hand-ranking logic
+    return random.randint(1, 7462)
+
+
 def simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations):
     """Simulate win probability using Monte Carlo simulation."""
     wins, ties = 0, 0
@@ -57,16 +64,18 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
         remaining_community = draw_random_cards(excluded_cards, cards_to_draw)
         full_community = community_cards + remaining_community
 
-        # Simulate hand strengths (random values as placeholders)
-        player_hand_strength = random.randint(1, 7462)
-        opponent_strengths = [random.randint(1, 7462) for _ in opponents_hands]
+        # Evaluate hand strengths
+        player_strength = calculate_hand_strength(hole_cards, full_community)
+        opponents_strengths = [calculate_hand_strength(hand, full_community) for hand in opponents_hands]
 
         # Compare hand strengths
-        if player_hand_strength > max(opponent_strengths):
+        max_opponent_strength = max(opponents_strengths)
+        if player_strength > max_opponent_strength:
             wins += 1
-        elif player_hand_strength == max(opponent_strengths):
+        elif player_strength == max_opponent_strength:
             ties += 1
 
+    # Calculate probabilities
     win_percentage = (wins / num_simulations) * 100
     tie_percentage = (ties / num_simulations) * 100
     loss_percentage = 100 - win_percentage - tie_percentage
