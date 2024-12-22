@@ -15,11 +15,11 @@
         <main>
             <form id="calculatorForm">
                 <div class="form-group">
-                    <label for="hole_cards">Hole Cards (e.g., A K):</label>
+                    <label for="hole_cards">Hole Cards (e.g., AH KS):</label>
                     <input type="text" id="hole_cards" placeholder="Enter your hole cards" required>
                 </div>
                 <div class="form-group">
-                    <label for="community_cards">Community Cards (e.g., 2 3 5):</label>
+                    <label for="community_cards">Community Cards (e.g., 2H 3S 5D):</label>
                     <input type="text" id="community_cards" placeholder="Enter community cards">
                 </div>
                 <div class="form-group">
@@ -34,48 +34,65 @@
         </main>
     </div>
     <script>
+        let chartInstance = null; // For managing multiple chart instances
+
         document.getElementById('calculatorForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
+            // Get user inputs
             const holeCards = document.getElementById('hole_cards').value.split(' ');
             const communityCards = document.getElementById('community_cards').value.split(' ');
             const numOpponents = document.getElementById('num_opponents').value;
 
-            const response = await fetch('/calculate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    hole_cards: holeCards,
-                    community_cards: communityCards,
-                    num_opponents: numOpponents
-                })
-            });
+            try {
+                // Send data to the backend
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        hole_cards: holeCards,
+                        community_cards: communityCards,
+                        num_opponents: numOpponents,
+                    }),
+                });
 
-            const result = await response.json();
-            const ctx = document.getElementById('resultChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Win', 'Tie', 'Lose'],
-                    datasets: [{
-                        label: 'Probability (%)',
-                        data: [result.win, result.tie, result.lose],
-                        backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            enabled: true
-                        }
-                    }
+                if (!response.ok) {
+                    throw new Error("Error communicating with the server.");
                 }
-            });
+
+                const result = await response.json();
+                console.log("Response from backend:", result);
+
+                // Destroy the old chart instance if it exists
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                // Render the graph
+                const ctx = document.getElementById('resultChart').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Win', 'Tie', 'Lose'],
+                        datasets: [{
+                            label: 'Monte Carlo Simulation Results (%)',
+                            data: [result.win, result.tie, result.lose],
+                            backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                            },
+                        },
+                    },
+                });
+            } catch (error) {
+                console.error("Error during calculation:", error);
+                alert("An error occurred. Please try again.");
+            }
         });
     </script>
 </body>
