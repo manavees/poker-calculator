@@ -19,6 +19,8 @@ def expand_cards(card_inputs):
             expanded.extend([card[0] + suit for suit in suits])
         elif len(card) == 2 and card[1] in suits:
             expanded.append(card)
+        else:
+            raise ValueError(f"Invalid card input: {card}")
     return expanded
 
 
@@ -27,6 +29,8 @@ def draw_random_cards(exclude, num):
     Draw random cards from the deck, excluding specific cards.
     """
     available_cards = [card for card in deck if card not in exclude]
+    if len(available_cards) < num:
+        raise ValueError("Not enough cards left in the deck.")
     return random.sample(available_cards, num)
 
 
@@ -76,20 +80,24 @@ def calculate():
     """
     Handle POST requests to calculate probabilities.
     """
-    data = request.json
-    # Split cards using spaces
-    hole_cards = data.get("hole_cards", "").upper().split()
-    community_cards = data.get("community_cards", "").upper().split()
-    num_opponents = int(data.get("num_opponents", 2))
-    num_simulations = 10000
+    try:
+        data = request.json
+        # Split cards using spaces
+        hole_cards = data.get("hole_cards", "").upper().split()
+        community_cards = data.get("community_cards", "").upper().split()
+        num_opponents = int(data.get("num_opponents", 2))
+        num_simulations = 10000
 
-    # Expand inputs like "A K" into all possible suits
-    hole_cards = expand_cards(hole_cards)
-    community_cards = expand_cards(community_cards)
+        # Expand inputs like "A K" into all possible suits
+        hole_cards = expand_cards(hole_cards)
+        community_cards = expand_cards(community_cards)
 
-    # Simulate probabilities
-    result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
-    return jsonify(result)
+        # Simulate probabilities
+        result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
+        return jsonify(result)
+    except Exception as e:
+        print("Error:", str(e))  # Log the error for debugging
+        return jsonify({"error": str(e)}), 400
 
 
 if __name__ == '__main__':
