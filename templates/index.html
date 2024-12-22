@@ -14,20 +14,46 @@
         </header>
         <main>
             <form id="calculatorForm">
+                <h3>Hole Cards</h3>
                 <div class="form-group">
-                    <label for="hole_cards">Hole Cards (e.g., AH KS):</label>
-                    <input type="text" id="hole_cards" placeholder="Enter your hole cards" required>
+                    <label for="hole_card_1">Hole Card 1:</label>
+                    <input type="text" id="hole_card_1" placeholder="e.g., AH" required>
                 </div>
                 <div class="form-group">
-                    <label for="community_cards">Community Cards (e.g., 2H 3S 5D):</label>
-                    <input type="text" id="community_cards" placeholder="Enter community cards">
+                    <label for="hole_card_2">Hole Card 2:</label>
+                    <input type="text" id="hole_card_2" placeholder="e.g., KS" required>
                 </div>
+
+                <h3>Community Cards</h3>
+                <div class="form-group">
+                    <label for="community_card_1">Community Card 1:</label>
+                    <input type="text" id="community_card_1" placeholder="e.g., 2H">
+                </div>
+                <div class="form-group">
+                    <label for="community_card_2">Community Card 2:</label>
+                    <input type="text" id="community_card_2" placeholder="e.g., 3S">
+                </div>
+                <div class="form-group">
+                    <label for="community_card_3">Community Card 3:</label>
+                    <input type="text" id="community_card_3" placeholder="e.g., 5D">
+                </div>
+                <div class="form-group">
+                    <label for="community_card_4">Community Card 4:</label>
+                    <input type="text" id="community_card_4" placeholder="e.g., 9C">
+                </div>
+                <div class="form-group">
+                    <label for="community_card_5">Community Card 5:</label>
+                    <input type="text" id="community_card_5" placeholder="e.g., TH">
+                </div>
+
+                <h3>Number of Opponents</h3>
                 <div class="form-group">
                     <label for="num_opponents">Number of Opponents:</label>
                     <input type="number" id="num_opponents" value="2" min="1" required>
                 </div>
                 <button type="submit">Calculate</button>
             </form>
+
             <div class="results">
                 <canvas id="resultChart" width="400" height="200"></canvas>
             </div>
@@ -40,8 +66,19 @@
             event.preventDefault();
 
             // Get user inputs
-            const holeCards = document.getElementById('hole_cards').value.split(' ');
-            const communityCards = document.getElementById('community_cards').value.split(' ');
+            const holeCards = [
+                document.getElementById('hole_card_1').value.trim().toUpperCase(),
+                document.getElementById('hole_card_2').value.trim().toUpperCase(),
+            ];
+
+            const communityCards = [
+                document.getElementById('community_card_1').value.trim().toUpperCase(),
+                document.getElementById('community_card_2').value.trim().toUpperCase(),
+                document.getElementById('community_card_3').value.trim().toUpperCase(),
+                document.getElementById('community_card_4').value.trim().toUpperCase(),
+                document.getElementById('community_card_5').value.trim().toUpperCase(),
+            ].filter(card => card !== ""); // Remove empty inputs
+
             const numOpponents = document.getElementById('num_opponents').value;
 
             try {
