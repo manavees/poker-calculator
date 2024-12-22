@@ -6,7 +6,8 @@ app = Flask(__name__)
 # Deck of cards
 suits = ['♠', '♥', '♦', '♣']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-deck = [rank + suit for suit in suits for rank in ranks]
+deck = [rank + suit for rank in ranks for suit in suits]
+
 
 def expand_cards(card_inputs):
     """
@@ -15,10 +16,12 @@ def expand_cards(card_inputs):
     expanded = []
     for card in card_inputs:
         if len(card) == 1 or (len(card) == 2 and card[1] not in suits):
+            # If the card is a rank only, add all suits
             expanded.extend([card[0] + suit for suit in suits])
         else:
             expanded.append(card)
     return expanded
+
 
 def draw_random_cards(exclude, num):
     """
@@ -26,6 +29,7 @@ def draw_random_cards(exclude, num):
     """
     available_cards = [card for card in deck if card not in exclude]
     return random.sample(available_cards, num)
+
 
 def simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations):
     """
@@ -37,11 +41,17 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
     excluded_cards = hole_cards_set.union(community_cards_set)
 
     for _ in range(num_simulations):
+        # Generate random hands for opponents
         opponents_hands = [set(draw_random_cards(excluded_cards, 2)) for _ in range(num_opponents)]
+        # Generate remaining community cards
         additional_community = draw_random_cards(excluded_cards.union(*opponents_hands), 5 - len(community_cards))
+        full_community = community_cards + additional_community
+
+        # Simulate hand strengths (simplified for demonstration)
         player_hand_strength = random.randint(1, 7462)
         opponents_strengths = [random.randint(1, 7462) for _ in opponents_hands]
 
+        # Compare hand strengths
         if player_hand_strength > max(opponents_strengths):
             wins += 1
         elif player_hand_strength == max(opponents_strengths):
@@ -53,12 +63,14 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
 
     return {"win": win_percentage, "tie": tie_percentage, "lose": loss_percentage}
 
+
 @app.route('/')
 def index():
     """
     Render the main HTML page.
     """
     return render_template('index.html')
+
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
@@ -77,6 +89,7 @@ def calculate():
 
     result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
     return jsonify(result)
+
 
 if __name__ == '__main__':
     app.run()
