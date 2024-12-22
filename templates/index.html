@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Texas Hold'em Poker Calculator</title>
+    <title>Poker Calculator</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -15,119 +15,77 @@
         <main>
             <form id="calculatorForm">
                 <h3>Hole Cards</h3>
-                <div class="form-group">
-                    <label for="hole_card_1">Hole Card 1:</label>
-                    <input type="text" id="hole_card_1" placeholder="e.g., AH" required>
-                </div>
-                <div class="form-group">
-                    <label for="hole_card_2">Hole Card 2:</label>
-                    <input type="text" id="hole_card_2" placeholder="e.g., KS" required>
-                </div>
+                <label for="hole_card_1">Hole Card 1:</label>
+                <input type="text" id="hole_card_1" placeholder="e.g., AH" required>
+                <label for="hole_card_2">Hole Card 2:</label>
+                <input type="text" id="hole_card_2" placeholder="e.g., KS" required>
 
                 <h3>Community Cards</h3>
-                <div class="form-group">
-                    <label for="community_card_1">Community Card 1:</label>
-                    <input type="text" id="community_card_1" placeholder="e.g., 2H">
-                </div>
-                <div class="form-group">
-                    <label for="community_card_2">Community Card 2:</label>
-                    <input type="text" id="community_card_2" placeholder="e.g., 3S">
-                </div>
-                <div class="form-group">
-                    <label for="community_card_3">Community Card 3:</label>
-                    <input type="text" id="community_card_3" placeholder="e.g., 5D">
-                </div>
-                <div class="form-group">
-                    <label for="community_card_4">Community Card 4:</label>
-                    <input type="text" id="community_card_4" placeholder="e.g., 9C">
-                </div>
-                <div class="form-group">
-                    <label for="community_card_5">Community Card 5:</label>
-                    <input type="text" id="community_card_5" placeholder="e.g., TH">
-                </div>
+                <label for="community_card_1">Community Card 1:</label>
+                <input type="text" id="community_card_1" placeholder="e.g., 2H">
+                <label for="community_card_2">Community Card 2:</label>
+                <input type="text" id="community_card_2" placeholder="e.g., 3S">
+                <label for="community_card_3">Community Card 3:</label>
+                <input type="text" id="community_card_3" placeholder="e.g., 5D">
+                <label for="community_card_4">Community Card 4:</label>
+                <input type="text" id="community_card_4" placeholder="e.g., 9C">
+                <label for="community_card_5">Community Card 5:</label>
+                <input type="text" id="community_card_5" placeholder="e.g., TH">
 
                 <h3>Number of Opponents</h3>
-                <div class="form-group">
-                    <label for="num_opponents">Number of Opponents:</label>
-                    <input type="number" id="num_opponents" value="2" min="1" required>
-                </div>
+                <label for="num_opponents">Number of Opponents:</label>
+                <input type="number" id="num_opponents" value="2" min="1" required>
+
                 <button type="submit">Calculate</button>
             </form>
 
-            <div class="results">
+            <div>
                 <canvas id="resultChart" width="400" height="200"></canvas>
             </div>
         </main>
     </div>
     <script>
-        let chartInstance = null; // For managing multiple chart instances
-
         document.getElementById('calculatorForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
-            // Get user inputs
-            const holeCards = [
-                document.getElementById('hole_card_1').value.trim().toUpperCase(),
-                document.getElementById('hole_card_2').value.trim().toUpperCase(),
-            ];
-
-            const communityCards = [
-                document.getElementById('community_card_1').value.trim().toUpperCase(),
-                document.getElementById('community_card_2').value.trim().toUpperCase(),
-                document.getElementById('community_card_3').value.trim().toUpperCase(),
-                document.getElementById('community_card_4').value.trim().toUpperCase(),
-                document.getElementById('community_card_5').value.trim().toUpperCase(),
-            ].filter(card => card !== ""); // Remove empty inputs
-
-            const numOpponents = document.getElementById('num_opponents').value;
+            const data = {
+                hole_card_1: document.getElementById('hole_card_1').value,
+                hole_card_2: document.getElementById('hole_card_2').value,
+                community_card_1: document.getElementById('community_card_1').value,
+                community_card_2: document.getElementById('community_card_2').value,
+                community_card_3: document.getElementById('community_card_3').value,
+                community_card_4: document.getElementById('community_card_4').value,
+                community_card_5: document.getElementById('community_card_5').value,
+                num_opponents: document.getElementById('num_opponents').value,
+            };
 
             try {
-                // Send data to the backend
                 const response = await fetch('/calculate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        hole_cards: holeCards,
-                        community_cards: communityCards,
-                        num_opponents: numOpponents,
-                    }),
+                    body: JSON.stringify(data),
                 });
 
-                if (!response.ok) {
-                    throw new Error("Error communicating with the server.");
-                }
-
                 const result = await response.json();
-                console.log("Response from backend:", result);
-
-                // Destroy the old chart instance if it exists
-                if (chartInstance) {
-                    chartInstance.destroy();
+                if (result.error) {
+                    alert(result.error);
+                    return;
                 }
 
-                // Render the graph
                 const ctx = document.getElementById('resultChart').getContext('2d');
-                chartInstance = new Chart(ctx, {
+                new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: ['Win', 'Tie', 'Lose'],
                         datasets: [{
-                            label: 'Monte Carlo Simulation Results (%)',
+                            label: 'Monte Carlo Results',
                             data: [result.win, result.tie, result.lose],
                             backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
                         }],
                     },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: true,
-                            },
-                        },
-                    },
                 });
             } catch (error) {
-                console.error("Error during calculation:", error);
+                console.error("Error:", error);
                 alert("An error occurred. Please try again.");
             }
         });
