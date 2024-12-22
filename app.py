@@ -15,6 +15,9 @@ def validate_cards(card_inputs):
     """
     valid_cards = []
     for card in card_inputs:
+        if card.strip() == "":
+            continue  # Ignore empty inputs
+        card = card.upper()
         if len(card) == 2 and card[0] in ranks and card[1] in suits:
             valid_cards.append(card)
         else:
@@ -80,9 +83,17 @@ def calculate():
     """
     try:
         data = request.json
-        # Split cards using spaces
-        hole_cards = data.get("hole_cards", "").upper().split()
-        community_cards = data.get("community_cards", "").upper().split()
+        # Get hole cards
+        hole_cards = [
+            data.get("hole_cards", [])[0].strip().upper(),
+            data.get("hole_cards", [])[1].strip().upper(),
+        ]
+        # Get community cards, ignoring empty fields
+        community_cards = [
+            card.strip().upper()
+            for card in data.get("community_cards", [])
+            if card.strip() != ""
+        ]
         num_opponents = int(data.get("num_opponents", 2))
         num_simulations = 10000
 
