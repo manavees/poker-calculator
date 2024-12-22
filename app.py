@@ -9,36 +9,22 @@ ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 deck = [rank + suit for rank in ranks for suit in suits]
 
 
-def validate_cards(card_inputs):
-    """
-    Validate card inputs to ensure they follow the AH, KS format and exist in the deck.
-    """
-    valid_cards = []
-    for card in card_inputs:
-        if card.strip() == "":
-            continue  # Ignore empty inputs
-        card = card.upper()
-        if len(card) == 2 and card[0] in ranks and card[1] in suits:
-            valid_cards.append(card)
-        else:
-            raise ValueError(f"Invalid card input: {card}")
-    return valid_cards
+def validate_card(card):
+    """Validate a single card input to ensure it is in the format AH, KS, etc."""
+    card = card.strip().upper()
+    if len(card) == 2 and card[0] in ranks and card[1] in suits:
+        return card
+    raise ValueError(f"Invalid card input: {card}")
 
 
 def draw_random_cards(exclude, num):
-    """
-    Draw random cards from the deck, excluding specific cards.
-    """
+    """Draw random cards from the deck, excluding specific cards."""
     available_cards = [card for card in deck if card not in exclude]
-    if len(available_cards) < num:
-        raise ValueError("Not enough cards left in the deck.")
     return random.sample(available_cards, num)
 
 
 def simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations):
-    """
-    Simulate win probability using Monte Carlo simulation.
-    """
+    """Simulate win probability using Monte Carlo simulation."""
     wins, ties = 0, 0
     excluded_cards = set(hole_cards + community_cards)
 
@@ -51,7 +37,7 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
         remaining_community = draw_random_cards(excluded_cards, 5 - len(community_cards))
         full_community = community_cards + remaining_community
 
-        # Simulate hand strengths (random values as placeholders)
+        # Simulate hand strengths (simple random values for now)
         player_hand_strength = random.randint(1, 7462)
         opponent_strengths = [random.randint(1, 7462) for _ in opponents_hands]
 
@@ -70,36 +56,32 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
 
 @app.route('/')
 def index():
-    """
-    Render the main HTML page.
-    """
+    """Render the main HTML page."""
     return render_template('index.html')
 
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
-    """
-    Handle POST requests to calculate probabilities.
-    """
+    """Handle POST requests to calculate probabilities."""
     try:
         data = request.json
-        # Get hole cards
+        # Get and validate hole cards
         hole_cards = [
-            data.get("hole_cards", [])[0].strip().upper(),
-            data.get("hole_cards", [])[1].strip().upper(),
+            validate_card(data.get("hole_card_1", "")),
+            validate_card(data.get("hole_card_2", ""))
         ]
-        # Get community cards, ignoring empty fields
+        # Get and validate community cards
         community_cards = [
-            card.strip().upper()
-            for card in data.get("community_cards", [])
-            if card.strip() != ""
+            validate_card(card) for card in [
+                data.get("community_card_1", ""),
+                data.get("community_card_2", ""),
+                data.get("community_card_3", ""),
+                data.get("community_card_4", ""),
+                data.get("community_card_5", ""),
+            ] if card.strip()  # Ignore empty fields
         ]
         num_opponents = int(data.get("num_opponents", 2))
         num_simulations = 10000
-
-        # Validate cards
-        hole_cards = validate_cards(hole_cards)
-        community_cards = validate_cards(community_cards)
 
         # Simulate probabilities
         result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
