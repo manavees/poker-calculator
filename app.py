@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, jsonify
 import random
 
@@ -9,11 +8,29 @@ suits = ['♠', '♥', '♦', '♣']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 deck = [rank + suit for suit in suits for rank in ranks]
 
+def expand_cards(card_inputs):
+    """
+    Expand simplified card inputs to possible full cards by adding all suits.
+    """
+    expanded = []
+    for card in card_inputs:
+        if len(card) == 1 or (len(card) == 2 and card[1] not in suits):
+            expanded.extend([card[0] + suit for suit in suits])
+        else:
+            expanded.append(card)
+    return expanded
+
 def draw_random_cards(exclude, num):
+    """
+    Draw random cards from the deck, excluding specific cards.
+    """
     available_cards = [card for card in deck if card not in exclude]
     return random.sample(available_cards, num)
 
 def simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations):
+    """
+    Simulate win probability using Monte Carlo simulation.
+    """
     wins, ties = 0, 0
     hole_cards_set = set(hole_cards)
     community_cards_set = set(community_cards)
@@ -38,15 +55,25 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
 
 @app.route('/')
 def index():
+    """
+    Render the main HTML page.
+    """
     return render_template('index.html')
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
+    """
+    Handle POST requests to calculate probabilities.
+    """
     data = request.json
-    hole_cards = data.get("hole_cards", [])
-    community_cards = data.get("community_cards", [])
+    hole_cards = data.get("hole_cards", "").upper().split()
+    community_cards = data.get("community_cards", "").upper().split()
     num_opponents = int(data.get("num_opponents", 2))
     num_simulations = 10000
+
+    # Expand simplified card inputs to include all suits
+    hole_cards = expand_cards(hole_cards)
+    community_cards = expand_cards(community_cards)
 
     result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
     return jsonify(result)
