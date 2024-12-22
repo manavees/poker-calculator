@@ -3,7 +3,7 @@ import random
 
 app = Flask(__name__)
 
-# Deck of cards
+# Full deck of cards
 suits = ['♠', '♥', '♦', '♣']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 deck = [rank + suit for rank in ranks for suit in suits]
@@ -11,12 +11,11 @@ deck = [rank + suit for rank in ranks for suit in suits]
 
 def expand_cards(card_inputs):
     """
-    Expand simplified card inputs to possible full cards by adding all suits.
+    Expand simplified card inputs (e.g., "A K") to full cards (e.g., "A♠, A♥, A♦, A♣").
     """
     expanded = []
     for card in card_inputs:
         if len(card) == 1 or (len(card) == 2 and card[1] not in suits):
-            # If the card is a rank only, add all suits
             expanded.extend([card[0] + suit for suit in suits])
         else:
             expanded.append(card)
@@ -36,25 +35,25 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
     Simulate win probability using Monte Carlo simulation.
     """
     wins, ties = 0, 0
-    hole_cards_set = set(hole_cards)
-    community_cards_set = set(community_cards)
-    excluded_cards = hole_cards_set.union(community_cards_set)
+    excluded_cards = set(hole_cards + community_cards)
 
     for _ in range(num_simulations):
-        # Generate random hands for opponents
-        opponents_hands = [set(draw_random_cards(excluded_cards, 2)) for _ in range(num_opponents)]
-        # Generate remaining community cards
-        additional_community = draw_random_cards(excluded_cards.union(*opponents_hands), 5 - len(community_cards))
-        full_community = community_cards + additional_community
+        # Generate random opponent hands
+        opponents_hands = [draw_random_cards(excluded_cards, 2) for _ in range(num_opponents)]
+        excluded_cards.update([card for hand in opponents_hands for card in hand])
 
-        # Simulate hand strengths (simplified for demonstration)
+        # Generate remaining community cards
+        remaining_community = draw_random_cards(excluded_cards, 5 - len(community_cards))
+        full_community = community_cards + remaining_community
+
+        # Simulate hand strengths (simple random values for now)
         player_hand_strength = random.randint(1, 7462)
-        opponents_strengths = [random.randint(1, 7462) for _ in opponents_hands]
+        opponent_strengths = [random.randint(1, 7462) for _ in range(num_opponents)]
 
         # Compare hand strengths
-        if player_hand_strength > max(opponents_strengths):
+        if player_hand_strength > max(opponent_strengths):
             wins += 1
-        elif player_hand_strength == max(opponents_strengths):
+        elif player_hand_strength == max(opponent_strengths):
             ties += 1
 
     win_percentage = (wins / num_simulations) * 100
@@ -87,9 +86,10 @@ def calculate():
     hole_cards = expand_cards(hole_cards)
     community_cards = expand_cards(community_cards)
 
+    # Simulate probabilities
     result = simulate_win_probability(hole_cards, community_cards, num_opponents, num_simulations)
     return jsonify(result)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run
