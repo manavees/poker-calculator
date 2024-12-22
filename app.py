@@ -11,13 +11,13 @@ deck = [rank + suit for rank in ranks for suit in suits]
 
 def expand_cards(card_inputs):
     """
-    Expand simplified card inputs (e.g., "A K") to full cards (e.g., "A♠, A♥, A♦, A♣").
+    Expand inputs like "A K" into full cards, e.g., "A♠, A♥, A♦, A♣" for "A".
     """
     expanded = []
     for card in card_inputs:
         if len(card) == 1 or (len(card) == 2 and card[1] not in suits):
             expanded.extend([card[0] + suit for suit in suits])
-        else:
+        elif len(card) == 2 and card[1] in suits:
             expanded.append(card)
     return expanded
 
@@ -46,9 +46,9 @@ def simulate_win_probability(hole_cards, community_cards, num_opponents, num_sim
         remaining_community = draw_random_cards(excluded_cards, 5 - len(community_cards))
         full_community = community_cards + remaining_community
 
-        # Simulate hand strengths (simple random values for now)
+        # Simulate hand strengths (random values as placeholders)
         player_hand_strength = random.randint(1, 7462)
-        opponent_strengths = [random.randint(1, 7462) for _ in range(num_opponents)]
+        opponent_strengths = [random.randint(1, 7462) for _ in opponents_hands]
 
         # Compare hand strengths
         if player_hand_strength > max(opponent_strengths):
@@ -77,12 +77,13 @@ def calculate():
     Handle POST requests to calculate probabilities.
     """
     data = request.json
+    # Split cards using spaces
     hole_cards = data.get("hole_cards", "").upper().split()
     community_cards = data.get("community_cards", "").upper().split()
     num_opponents = int(data.get("num_opponents", 2))
     num_simulations = 10000
 
-    # Expand simplified card inputs to include all suits
+    # Expand inputs like "A K" into all possible suits
     hole_cards = expand_cards(hole_cards)
     community_cards = expand_cards(community_cards)
 
@@ -92,4 +93,4 @@ def calculate():
 
 
 if __name__ == '__main__':
-    app.run
+    app.run(debug=True)
